@@ -15,7 +15,7 @@ function! Send_keys_to_Tmux(keys)
     call <SID>Tmux_Vars()
   endif
 
-  call system("tmux send-keys -t " . s:tmux_target() . " " . a:keys)
+  call system("tmux send-keys -t " . s:tmux_target() . " Escape '[200~' " . a:keys . " Escape '[201~' C-M")
 endfunction
 
 " Main function.
