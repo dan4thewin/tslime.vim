@@ -15,7 +15,7 @@ function! Send_keys_to_Tmux(keys)
     call <SID>Tmux_Vars()
   endif
 
-  call system("tmux send-keys -t " . s:tmux_target() . " Escape '[200~' " . a:keys . " Escape '[201~' C-M")
+  call system("tmux send-keys -t " . s:tmux_target() . " " . a:keys . " C-M")
 endfunction
 
 " Main function.
@@ -24,20 +24,22 @@ function! Send_to_Tmux(text)
   if exists("g:tslime_autoset_pane") && g:tslime_autoset_pane
     call <SID>Tmux_Vars() 
   endif
-  call Send_keys_to_Tmux('"'.escape(a:text, '\"$').'"')
+  call Send_keys_to_Tmux('"'.escape(a:text, '`\"$').'"')
 endfunction
 
 function! s:tmux_target()
   return '"' . g:tslime['session'] . '":' . g:tslime['window'] . "." . g:tslime['pane']
 endfunction
 
-function! s:set_tmux_buffer(text)
-  let buf = substitute(a:text, "'", "\\'", 'g')
-  call system("tmux load-buffer -", buf)
+function! Load_Tmux_Buf(text)
+  call system("tmux load-buffer -", a:text)
 endfunction
 
-function! SendToTmux(text)
-  call Send_to_Tmux(a:text)
+function! Tmux_Paste()
+  if !exists("g:tslime") || (exists("g:tslime_autoset_pane") && g:tslime_autoset_pane)
+    call <SID>Tmux_Vars()
+  endif
+  call system("tmux paste-buffer -p -t " . s:tmux_target())
 endfunction
 
 " Session completion
@@ -161,7 +163,7 @@ function! s:Tmux_Vars()
   endif
 endfunction
 
-vnoremap <silent> <Plug>SendSelectionToTmux "ry :call Send_to_Tmux(@r)<CR>
+vnoremap <silent> <Plug>SendSelectionToTmux "ry :call Load_Tmux_Buf(@r)<CR>:call Tmux_Paste()<CR>
 nmap     <silent> <Plug>NormalModeSendToTmux vip<Plug>SendSelectionToTmux
 
 nnoremap          <Plug>SetTmuxVars :call <SID>Tmux_Vars()<CR>
